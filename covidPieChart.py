@@ -37,9 +37,18 @@ userCounty = userCounty[0].upper() + userCounty[1:]
 
 #Creating a list with all the county names from the data
 countyDict = w['covid_romania'][0]['county_data']
-totalCounties = []
-for i in countyDict:
-    totalCounties.append(i['county_name'].lower())
+totalCounties = [ county['county_name'].lower() for county in countyDict] #Replacing the for loop with a list comprehension
+
+def daySelector():
+    for i in w['covid_romania']:
+        for v in i.values():
+            if v == userDate:
+                dayData = i
+                cases = i['new_cases_today']
+                tests = i['new_tests_today']
+                print(str(cases) + ' cases confirmed from '+ str(tests) + ' tests, that means ' + str(round(cases / (tests / 100),1)) + '%') 
+                return dayData['county_data']
+    
 
 def timeWalking():
     intDay = int(day)
@@ -64,17 +73,6 @@ def timeWalking():
         days.append(year + '-' + str(intMonth).rjust(2, '0')+ '-' + str(intDay).rjust(2,'0')) #the rjust(2, '0') puts a 0 on the left if the value is single digit.
         intDay -= 1
     return days
-
-def daySelector():
-    for i in w['covid_romania']:
-        for v in i.values():
-            if v == userDate:
-                dayData = i
-                cases = i['new_cases_today']
-                tests = i['new_tests_today']
-                print(str(cases) + ' cases confirmed from '+ str(tests) + ' tests, that means ' + str(round(cases / (tests / 100),1)) + '%') 
-                return dayData['county_data']
-
     
 def timelineSelector():
     cases = {}
@@ -90,7 +88,7 @@ def timelineSelector():
                         cases[v] = j['total_cases']
     return cases 
 
-
+#if user enters a valid county, create new sheet and fill it with data from 14 days.
 if userCounty.lower() in totalCounties:
     timeCases = timelineSelector()
     countySheet = wb.create_sheet(userCounty + 'Sheet')
@@ -102,9 +100,9 @@ if userCounty.lower() in totalCounties:
     
     countyChart = openpyxl.chart.LineChart()
     countyChart.style = 12
-    countyChart.title = 'Evolution cases'
-    countyChart.x_axis.title = 'Date'
-    countyChart.y_axis.title = 'Evolution'
+    countyChart.title = 'Evolution of cases'
+    countyChart.x_axis.title = 'Last 14 days'
+    countyChart.y_axis.title = 'Confirmed cases'
 
     countyData = openpyxl.chart.Reference(countySheet, min_col= 2, min_row= 1, max_row = countySheet.max_row, max_col= 2)
     countyDates = openpyxl.chart.Reference(countySheet, min_col= 1, min_row= 1, max_row= countySheet.max_row)
